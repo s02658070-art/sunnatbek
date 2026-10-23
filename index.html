@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Rain - Level Rush</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: background 0.8s ease;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 40px;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      z-index: 5;
+    }
+
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #38bdf8;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+    }
+
+    .stats {
+      display: flex;
+      gap: 30px;
+      font-size: 1.1rem;
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-box span {
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    /* Game Arena */
+    .game-arena {
+      position: relative;
+      flex: 1;
+      overflow: hidden;
+      background: radial-gradient(circle at center, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.9) 100%);
+    }
+
+    /* Falling Words */
+    .falling-word {
+      position: absolute;
+      top: 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+      background: rgba(15, 23, 42, 0.85);
+      border: 2px solid var(--accent-color, #38bdf8);
+      padding: 8px 18px;
+      border-radius: 12px;
+      color: #ffffff;
+      white-space: nowrap;
+      box-shadow: 0 0 15px var(--glow-color, rgba(56, 189, 248, 0.3));
+      transition: transform 0.1s ease;
+    }
+
+    /* Level Up Effect Banner */
+    .level-banner {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+      pointer-events: none;
+      z-index: 8;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.27), opacity 0.4s;
+      opacity: 0;
+      text-align: center;
+    }
+
+    .level-banner.show {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+
+    /* Input Container */
+    .input-container {
+      padding: 25px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 5;
+    }
+
+    #type-input {
+      width: 100%;
+      max-width: 550px;
+      padding: 14px 24px;
+      font-size: 1.2rem;
+      background: #0f172a;
+      border: 2px solid #334155;
+      color: #fff;
+      border-radius: 14px;
+      outline: none;
+      text-align: center;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    #type-input:focus {
+      border-color: var(--accent-color, #38bdf8);
+      box-shadow: 0 0 20px var(--glow-color, rgba(56, 189, 248, 0.4));
+    }
+
+    /* Overlays */
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.92);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      gap: 20px;
+    }
+
+    .overlay h1 {
+      font-size: 3.2rem;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .overlay p {
+      color: #94a3b8;
+      font-size: 1.1rem;
+      max-width: 450px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .btn {
+      padding: 14px 36px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #38bdf8, #3b82f6);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">⚡ WORD RAIN</div>
+    <div class="stats">
+      <div class="stat-box">Level: <span id="level-display">1 / 250</span></div>
+      <div class="stat-box">Score: <span id="score-display">0</span></div>
+      <div class="stat-box">Lives: <span id="lives-display">❤️ ❤️ ❤️</span></div>
+    </div>
+  </header>
+
+  <div class="game-arena" id="game-arena">
+    <!-- Level Banner -->
+    <div class="level-banner" id="level-banner">LEVEL 1</div>
+
+    <!-- Start Overlay -->
+    <div class="overlay" id="start-screen">
+      <h1>Word Rain 250</h1>
+      <p>Pass all 250 Levels! Type the falling words quickly. Each level gets new gradient themes and harder words!</p>
+      <button class="btn" id="start-btn">Start Game</button>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div class="overlay" id="gameover-screen" style="display: none;">
+      <h1 style="background: linear-gradient(135deg, #ef4444, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Game Over</h1>
+      <p>You reached <b><span id="final-level">Level 1</span></b> with a score of <b><span id="final-score">0</span></b>!</p>
+      <button class="btn" id="restart-btn">Try Again</button>
+    </div>
+
+    <!-- Victory Overlay -->
+    <div class="overlay" id="victory-screen" style="display: none;">
+      <h1>🎉 You Won!</h1>
+      <p>Incredible! You completed all 250 Levels!</p>
+      <button class="btn" id="win-restart-btn">Play Again</button>
+    </div>
+  </div>
+
+  <div class="input-container">
+    <input type="text" id="type-input" placeholder="Type word here..." autocomplete="off" disabled>
+  </div>
+
+  <script>
+    // Word Pools based on word lengths (Difficulty levels)
+    const easyWords = ["cat", "dog", "sun", "sky", "run", "red", "blue", "box", "key", "pen", "cup", "car", "hat", "boy", "art", "map", "sea", "air", "top", "fox", "ice", "fly"];
+    const mediumWords = ["apple", "tree", "water", "house", "music", "light", "clock", "bread", "earth", "plant", "paper", "smile", "table", "chair", "beach", "river", "cloud", "green", "phone", "smart"];
+    const hardWords = ["keyboard", "computer", "language", "universe", "mountain", "building", "hospital", "dinosaur", "painting", "sentence", "terminal", "umbrella", "sandwich", "fountain", "triangle"];
+    const expertWords = ["javascript", "programming", "development", "architecture", "microscope", "revolution", "description", "opportunity", "environment", "civilization", "performance", "distraction"];
+
+    // Dynamic Color Themes for Level Batches
+    const themes = [
+      { bg: "linear-gradient(135deg, #0f172a, #1e293b)", accent: "#38bdf8", glow: "rgba(56, 189, 248, 0.4)" }, // Blue Slate
+      { bg: "linear-gradient(135deg, #130e2a, #2a1b4e)", accent: "#a855f7", glow: "rgba(168, 85, 247, 0.4)" }, // Deep Purple
+      { bg: "linear-gradient(135deg, #062c20, #0f523a)", accent: "#34d399", glow: "rgba(52, 211, 153, 0.4)" }, // Emerald Forest
+      { bg: "linear-gradient(135deg, #2c0b0e, #581c22)", accent: "#f87171", glow: "rgba(248, 113, 113, 0.4)" }, // Crimson Velvet
+      { bg: "linear-gradient(135deg, #2a1a08, #54330c)", accent: "#fbbf24", glow: "rgba(251, 191, 36, 0.4)" }, // Amber Gold
+      { bg: "linear-gradient(135deg, #0f232a, #1a4350)", accent: "#22d3ee", glow: "rgba(34, 211, 238, 0.4)" }  // Cyan Sea
+    ];
+
+    // State Variables
+    let currentLevel = 1;
+    let score = 0;
+    let lives = 3;
+    let wordsLeftInLevel = 0;
+    let totalWordsInLevel = 0;
+    
+    let activeWords = [];
+    let gameInterval = null;
+    let spawnTimeout = null;
+    let isLevelTransitioning = false;
+
+    // Elements
+    const gameArena = document.getElementById('game-arena');
+    const typeInput = document.getElementById('type-input');
+    const levelDisplay = document.getElementById('level-display');
+    const scoreDisplay = document.getElementById('score-display');
+    const livesDisplay = document.getElementById('lives-display');
+    const levelBanner = document.getElementById('level-banner');
+    
+    const startScreen = document.getElementById('start-screen');
+    const gameoverScreen = document.getElementById('gameover-screen');
+    const victoryScreen = document.getElementById('victory-screen');
+    const startBtn = document.getElementById('start-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const winRestartBtn = document.getElementById('win-restart-btn');
+
+    function updateTheme() {
+      const themeIndex = Math.floor((currentLevel - 1) / 10) % themes.length;
+      const theme = themes[themeIndex];
+
+      document.body.style.background = theme.bg;
+      document.documentElement.style.setProperty('--accent-color', theme.accent);
+      document.documentElement.style.setProperty('--glow-color', theme.glow);
+    }
+
+    function getWordForLevel(lvl) {
+      if (lvl <= 30) return easyWords[Math.floor(Math.random() * easyWords.length)];
+      if (lvl <= 100) return mediumWords[Math.floor(Math.random() * mediumWords.length)];
+      if (lvl <= 180) return hardWords[Math.floor(Math.random() * hardWords.length)];
+      return expertWords[Math.floor(Math.random() * expertWords.length)];
+    }
+
+    function getSpeedForLevel(lvl) {
+      // Very gentle speed scaling so it stays enjoyable
+      return 0.4 + (lvl * 0.008);
+    }
+
+    function getWordCountForLevel(lvl) {
+      // 3 words at level 1, gradually rising up to 8 words at level 250
+      return Math.min(3 + Math.floor(lvl / 40), 8);
+    }
+
+    function startGame() {
+      currentLevel = 1;
+      score = 0;
+      lives = 3;
+      
+      startScreen.style.display = 'none';
+      gameoverScreen.style.display = 'none';
+      victoryScreen.style.display = 'none';
+      
+      typeInput.disabled = false;
+      typeInput.focus();
+
+      updateStatsUI();
+      startLevel(currentLevel);
+
+      clearInterval(gameInterval);
+      gameInterval = setInterval(updateGameLoop, 30);
+    }
+
+    function startLevel(lvl) {
+      isLevelTransitioning = true;
+      updateTheme();
+
+      // Clear existing words
+      document.querySelectorAll('.falling-word').forEach(el => el.remove());
+      activeWords = [];
+
+      totalWordsInLevel = getWordCountForLevel(lvl);
+      wordsLeftInLevel = totalWordsInLevel;
+
+      // Show Level Banner
+      levelBanner.textContent = `LEVEL ${lvl}`;
+      levelBanner.classList.add('show');
+
+      setTimeout(() => {
+        levelBanner.classList.remove('show');
+        isLevelTransitioning = false;
+        spawnNextWord();
+      }, 1400);
+    }
+
+    function spawnNextWord() {
+      if (wordsLeftInLevel <= 0 || isLevelTransitioning) return;
+
+      const wordText = getWordForLevel(currentLevel);
+      const wordEl = document.createElement('div');
+      wordEl.className = 'falling-word';
+      wordEl.textContent = wordText;
+
+      const maxX = gameArena.clientWidth - 150;
+      const randomX = Math.max(20, Math.random() * maxX);
+      wordEl.style.left = `${randomX}px`;
+      wordEl.style.top = '0px';
+
+      gameArena.appendChild(wordEl);
+
+      activeWords.push({
+        element: wordEl,
+        text: wordText,
+        y: 0,
+        speed: getSpeedForLevel(currentLevel)
+      });
+
+      wordsLeftInLevel--;
+
+      // Schedule next word if level still has remaining words
+      if (wordsLeftInLevel > 0) {
+        const delay = Math.max(1800 - (currentLevel * 4), 1000);
+        spawnTimeout = setTimeout(spawnNextWord, delay);
+      }
+    }
+
+    function updateGameLoop() {
+      if (isLevelTransitioning) return;
+
+      for (let i = activeWords.length - 1; i >= 0; i--) {
+        let obj = activeWords[i];
+        obj.y += obj.speed;
+        obj.element.style.top = `${obj.y}px`;
+
+        // If word hits bottom
+        if (obj.y > gameArena.clientHeight - 60) {
+          obj.element.remove();
+          activeWords.splice(i, 1);
+          
+          lives--;
+          updateStatsUI();
+
+          if (lives <= 0) {
+            triggerGameOver();
+            return;
+          }
+
+          checkLevelCompletion();
+        }
+      }
+    }
+
+    function checkLevelCompletion() {
+      // Level cleared when all words are typed or dropped
+      if (wordsLeftInLevel === 0 && activeWords.length === 0 && !isLevelTransitioning) {
+        if (currentLevel >= 250) {
+          triggerVictory();
+        } else {
+          currentLevel++;
+          updateStatsUI();
+          startLevel(currentLevel);
+        }
+      }
+    }
+
+    typeInput.addEventListener('input', () => {
+      const typedVal = typeInput.value.trim().toLowerCase();
+      const matchedIndex = activeWords.findIndex(obj => obj.text === typedVal);
+
+      if (matchedIndex !== -1) {
+        // Correct Word Typed!
+        const matchedObj = activeWords[matchedIndex];
+        matchedObj.element.remove();
+        activeWords.splice(matchedIndex, 1);
+
+        score += 10 + Math.floor(currentLevel / 5);
+        updateStatsUI();
+        typeInput.value = '';
+
+        checkLevelCompletion();
+      }
+    });
+
+    function updateStatsUI() {
+      levelDisplay.textContent = `${currentLevel} / 250`;
+      scoreDisplay.textContent = score;
+      livesDisplay.textContent = "❤️ ".repeat(lives);
+    }
+
+    function triggerGameOver() {
+      clearInterval(gameInterval);
+      clearTimeout(spawnTimeout);
+      typeInput.disabled = true;
+
+      document.getElementById('final-level').textContent = `Level ${currentLevel}`;
+      document.getElementById('final-score').textContent = score;
+      gameoverScreen.style.display = 'flex';
+    }
+
+    function triggerVictory() {
+      clearInterval(gameInterval);
+      clearTimeout(spawnTimeout);
+      typeInput.disabled = true;
+      victoryScreen.style.display = 'flex';
+    }
+
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', startGame);
+    winRestartBtn.addEventListener('click', startGame);
+  </script>
+</body>
+</html>
